@@ -1,17 +1,15 @@
 const express = require("express");
-const axios = require("axios");
-const OpenAI = require("openai");
-require("dotenv").config();
+const authenticateToken = require("../middleware/auth");
+const dotenv = require("dotenv");
+const open_ai = require("openai");
 
-const app = express();
-app.use(express.json());
+dotenv.config();
 
-const openai = new OpenAI.OpenAI(process.env.OPENAI_API_KEY);
+const router = express.Router();
 
-const PORT = process.env.PORT || 3000;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const openai = new open_ai.OpenAI(process.env.OPENAI_API_KEY);
 
-app.post("/generate-content", async (req, res) => {
+router.post("/generate-content", authenticateToken, async (req, res) => {
   const { theme, tone } = req.body;
 
   const prompt = `
@@ -23,8 +21,6 @@ app.post("/generate-content", async (req, res) => {
     `;
 
   try {
-    console.log("Requst body: ", theme, tone, prompt);
-
     const response = await openai.chat.completions.create({
       messages: [{ role: "system", content: prompt }],
       model: "gpt-3.5-turbo",
@@ -38,6 +34,4 @@ app.post("/generate-content", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+module.exports = router;
